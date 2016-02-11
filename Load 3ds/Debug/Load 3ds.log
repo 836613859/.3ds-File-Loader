@@ -1,0 +1,8 @@
+﻿  main.cpp
+f:\1vs project\load 3ds\load 3ds\my3dsloader.h(24): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
+f:\1vs project\load 3ds\load 3ds\my3dsloader.h(33): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
+f:\1vs project\load 3ds\load 3ds\main.cpp(32): warning C4244: “=”: 从“std::streamoff”转换到“UINT”，可能丢失数据
+f:\1vs project\load 3ds\load 3ds\main.cpp(88): warning C4244: “初始化”: 从“std::streamoff”转换到“UINT”，可能丢失数据
+f:\1vs project\load 3ds\load 3ds\main.cpp(250): warning C4267: “初始化”: 从“size_t”转换到“uint16_t”，可能丢失数据
+  Load 3ds.vcxproj -> F:\1VS PROJECT\Load 3ds\Debug\Load 3ds.exe
+  Load 3ds.vcxproj -> F:\1VS PROJECT\Load 3ds\Debug\Load 3ds.pdb (Partial PDB)
