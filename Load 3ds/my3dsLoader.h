@@ -7,6 +7,9 @@
 #include <sstream>
 
 typedef unsigned int UINT;
+typedef UINT BOOL;
+#define FALSE 0
+#define TRUE 1
 
 struct N_SubsetInfo
 {
@@ -19,7 +22,7 @@ struct N_SubsetInfo
 struct Vector3
 {
 	Vector3(){ _x = _y=_z=0; }
-	Vector3(int x, int y, int z) { _x = x;_y = y;_z = z; }
+	Vector3(float x, float y, float z) { _x = x;_y = y;_z = z; }
 	float _x;
 	float _y;
 	float _z;
@@ -28,7 +31,7 @@ struct Vector3
 struct Vector2
 {
 	Vector2() { _x = _y = 0; }
-	Vector2(int x, int y) { _x = x;_y = y; }
+	Vector2(float x, float y) { _x = x;_y = y; }
 	float _x;
 	float _y;
 };
@@ -40,6 +43,7 @@ struct N_Material
 	Vector3 specColor;
 	Vector3 AmbColor;
 	std::string diffMapName;
+	std::string normalMapName;
 	std::string specMapName;
 	std::string EnvMapName;
 };
@@ -48,29 +52,40 @@ const UINT c_chunkHeadByteLength = 6;
 
 enum NOISE_3DS_CHUNKID
 {
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_MAIN3D = 0x4D4D,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_3D_EDITOR_CHUNK = 0x3D3D,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_OBJECT_BLOCK = 0x4000,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_TRIANGULAR_MESH = 0x4100,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_VERTICES_LIST = 0x4110,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_FACES_DESCRIPTION = 0x4120,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_FACES_MATERIAL = 0x4130,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_MAPPING_COORDINATES_LIST = 0x4140,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_SMOOTHING_GROUP_LIST = 0x4150,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_LOCAL_COORDINATES_SYSTEM = 0x4160,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_LIGHT = 0x4600,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_SPOTLIGHT = 0x4610,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_CAMERA = 0x4700,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_MATERIAL_BLOCK = 0xAFFF,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_MATERIAL_NAME = 0xA000,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_AMBIENT_COLOR = 0xA010,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_DIFFUSE_COLOR = 0xA020,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_SPECULAR_COLOR = 0xA030,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_TEXTURE_MAP = 0xA200,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_BUMP_MAP = 0xA230,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_REFLECTION_MAP = 0xA220,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_MAPPING_FILENAME = 0xA300,
-	NOISE_3DS_CHUNKID_3DS_CHUNKID_MAPPING_PARAMETERS = 0xA351,
+	//some of these chunks are not interested
+	NOISE_3DS_CHUNKID_MAIN3D = 0x4D4D,
+	NOISE_3DS_CHUNKID_3D_EDITOR_CHUNK = 0x3D3D,
+	NOISE_3DS_CHUNKID_OBJECT_BLOCK = 0x4000,
+	NOISE_3DS_CHUNKID_TRIANGULAR_MESH = 0x4100,
+	NOISE_3DS_CHUNKID_VERTICES_LIST = 0x4110,
+	NOISE_3DS_CHUNKID_FACES_DESCRIPTION = 0x4120,
+	NOISE_3DS_CHUNKID_FACES_MATERIAL = 0x4130,
+	NOISE_3DS_CHUNKID_MAPPING_COORDINATES_LIST = 0x4140,
+	NOISE_3DS_CHUNKID_SMOOTHING_GROUP_LIST = 0x4150,
+	NOISE_3DS_CHUNKID_LOCAL_COORDINATES_SYSTEM = 0x4160,
+	NOISE_3DS_CHUNKID_LIGHT = 0x4600,
+	NOISE_3DS_CHUNKID_SPOTLIGHT = 0x4610,
+	NOISE_3DS_CHUNKID_CAMERA = 0x4700,
+	NOISE_3DS_CHUNKID_MATERIAL_BLOCK = 0xAFFF,
+	NOISE_3DS_CHUNKID_MATERIAL_NAME = 0xA000,
+	NOISE_3DS_CHUNKID_AMBIENT_COLOR = 0xA010,
+	NOISE_3DS_CHUNKID_DIFFUSE_COLOR = 0xA020,
+	NOISE_3DS_CHUNKID_SPECULAR_COLOR = 0xA030,
+	NOISE_3DS_CHUNKID_TEXTURE_MAP = 0xA200,
+	NOISE_3DS_CHUNKID_BUMP_MAP = 0xA230,
+	NOISE_3DS_CHUNKID_SPECULAR_MAP = 0xA204,
+	NOISE_3DS_CHUNKID_REFLECTION_MAP = 0xA220,
+	NOISE_3DS_CHUNKID_MAPPING_FILENAME = 0xA300,
+	NOISE_3DS_CHUNKID_MAPPING_PARAMETERS = 0xA351,
+
+	// Common chunks which can be found everywhere in the file
+	NOISE_3DS_CHUNKID_VERSION		= 0x0002,
+	NOISE_3DS_CHUNKID_RGBF				= 0x0010,	// float4 R; float4 G; float4 B
+	NOISE_3DS_CHUNKID_RGBB				= 0x0011,	// int1 R; int1 G; int B
+	NOISE_3DS_CHUNKID_LINRGBF		= 0x0013,	// float4 R; float4 G; float4 B
+	NOISE_3DS_CHUNKID_LINRGBB		= 0x0012,	// int1 R; int1 G; int B
+	NOISE_3DS_CHUNKID_PERCENTW	= 0x0030,	// int2   percentage
+	NOISE_3DS_CHUNKID_PERCENTF		= 0x0031,	// float4  percentage
 };
 
 
@@ -88,8 +103,6 @@ void ReadChunk();
 void	SkipCurrentChunk();
 
 void	ReadStringFromFile(std::string& outString);
-
-void	ReadAndParseColorChunk(Vector3& outColor);
 
 //**********************************************
 void		ParseMainChunk();//1
@@ -118,14 +131,15 @@ void		ParseMainChunk();//1
 
 			void	ParseSpecularColor();//4
 
+				void ReadAndParseColorChunk(Vector3& outColor);//level 5 for each color chunk
+
 			void	ParseDiffuseMap();//4
 
 			void	ParseBumpMap();//4
 
-			void	ParseReflectionMap();//4
+			void	ParseSpecularMap();//4
 
-				void	ParseMapFileName();//5
-				
+				void	ReadAndParseMapChunk(std::string& outMapFileName);//level 5 for each map chunk
 
 /***********************************************************************
 Offset			Length			Description
