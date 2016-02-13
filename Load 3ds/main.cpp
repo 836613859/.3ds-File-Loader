@@ -528,7 +528,7 @@ void ParseSpecularColor()
 void ParseDiffuseMap()
 {
 	//data:sub chunks
-	uint64_t filePos = fileIn.tellg();
+	uint64_t filePos = 0;
 	do
 	{
 		ReadAndParseMapChunk(static_materialList.back().diffMapName);
@@ -541,7 +541,7 @@ void ParseDiffuseMap()
 void ParseBumpMap()
 {
 	//data:sub chunks
-	uint64_t filePos = fileIn.tellg();
+	uint64_t filePos = 0;
 	do
 	{
 		ReadAndParseMapChunk(static_materialList.back().normalMapName);
@@ -554,7 +554,7 @@ void ParseBumpMap()
 void ParseSpecularMap()
 {
 	//data:sub chunks
-	uint64_t filePos = fileIn.tellg();
+	uint64_t filePos = 0;
 	do
 	{
 		ReadAndParseMapChunk(static_materialList.back().specMapName);
