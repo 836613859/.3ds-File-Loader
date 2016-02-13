@@ -1,11 +1,12 @@
 #include "my3dsLoader.h"
 
 
+static UINT currentChunkFileEndPos = 0;
+
 //there are so many output that put them in function parameter will be too verbose
 //Not to mention recursive function or deep function calling stack
-static uint64_t fileSize = 0;
+static UINT fileSize = 0;
 static std::ifstream fileIn;
-static uint64_t currentChunkFileEndPos = 0;
 
 //--------Data From File--------
 static std::string static_objectName;
@@ -83,79 +84,80 @@ void ReadChunk()
 		return;
 	}
 
-	uint64_t tmpFilePos = fileIn.tellg();
+	UINT tmpFilePos = fileIn.tellg();
 	currentChunkFileEndPos = tmpFilePos + chunkLength - c_chunkHeadByteLength;
 
 	//in CURRENT chunk, there can be several sub-chunks to read
 	switch (chunkID)
 	{
-	case NOISE_3DS_CHUNKID_MAIN3D:
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_MAIN3D:
 		ParseMainChunk();//level1
 		break;
 
-	case NOISE_3DS_CHUNKID_3D_EDITOR_CHUNK:
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_3D_EDITOR_CHUNK:
 		Parse3DEditorChunk();//level2
 		break;
 
-	case NOISE_3DS_CHUNKID_OBJECT_BLOCK:
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_OBJECT_BLOCK:
 		ParseObjectBlock();//level3
 		break;
 
-	case NOISE_3DS_CHUNKID_TRIANGULAR_MESH:
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_TRIANGULAR_MESH:
 		ParseTriangularMeshChunk();//level4
 		break;
 
-	case NOISE_3DS_CHUNKID_VERTICES_LIST:
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_VERTICES_LIST:
 		ParseVerticesChunk();//level5
 		break;
 
-	case NOISE_3DS_CHUNKID_FACES_DESCRIPTION:
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_FACES_DESCRIPTION:
 		ParseFaceDescAndIndices();//level5
 		break;
 
-	case NOISE_3DS_CHUNKID_FACES_MATERIAL:
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_FACES_MATERIAL:
 		ParseFacesAndMatID();//level 6
 		break;
 
-	case NOISE_3DS_CHUNKID_MAPPING_COORDINATES_LIST:
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_MAPPING_COORDINATES_LIST:
 		ParseTextureCoordinate();//level5
 		break;
 
-	case NOISE_3DS_CHUNKID_MATERIAL_BLOCK:
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_MATERIAL_BLOCK:
 		ParseMaterialBlock();//level 3
 		break;
 
-	case NOISE_3DS_CHUNKID_MATERIAL_NAME:
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_MATERIAL_NAME:
 		ParseMaterialName();//level 4
 		break;
 
-	case NOISE_3DS_CHUNKID_AMBIENT_COLOR:
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_AMBIENT_COLOR:
 		ParseAmbientColor();//level 4
 		break;
 
-	case NOISE_3DS_CHUNKID_DIFFUSE_COLOR:
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_DIFFUSE_COLOR:
 		ParseDiffuseColor();//level 4
 		break;
 
-	case NOISE_3DS_CHUNKID_SPECULAR_COLOR:
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_SPECULAR_COLOR:
 		ParseSpecularColor();//level 4
 		break;
 
-	case NOISE_3DS_CHUNKID_TEXTURE_MAP:
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_TEXTURE_MAP:
 		ParseDiffuseMap();//level 4
 		break;
 
-	case NOISE_3DS_CHUNKID_BUMP_MAP:
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_BUMP_MAP:
 		ParseBumpMap();//level 4
 		break;
 
-	case NOISE_3DS_CHUNKID_SPECULAR_MAP:
-		ParseSpecularMap();//level 4
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_REFLECTION_MAP:
+		ParseReflectionMap();//4
 		break;
 
-	/*case NOISE_3DS_CHUNKID_REFLECTION_MAP:
-		ParseReflectionMap();//4
-		break;*/
+	case NOISE_3DS_CHUNKID_3DS_CHUNKID_MAPPING_FILENAME:
+		//a sub-chunk for each map (texture/Bump/Reflection)
+		ParseMapFileName();//level5
+		break;
 
 	default:
 		//not interested chunks , skip
@@ -184,93 +186,10 @@ void ReadStringFromFile(std::string & outString)
 	} while (true);
 }
 
-//father: xxx color chunk
-//child:none
+//color chunk reading in material block
 void ReadAndParseColorChunk(Vector3 & outColor)
 {
-	//please refer to project "Assimp" for more chunk information
-
-	uint16_t chunkID = 0;
-	uint32_t chunkLength = 0;
-	BINARY_READ(chunkID);
-	BINARY_READ(chunkLength);
-
-	switch (chunkID)
-	{
-	case NOISE_3DS_CHUNKID_RGBF://float
-	{
-		BINARY_READ(outColor._x);
-		BINARY_READ(outColor._y);
-		BINARY_READ(outColor._z);
-	}
-		break;
-
-	case NOISE_3DS_CHUNKID_RGBB://byte
-	{
-		uint8_t colorByte = 0;
-		BINARY_READ(colorByte);
-		outColor._x = float(colorByte) / 255.0f;
-		BINARY_READ(colorByte);
-		outColor._y = float(colorByte) / 255.0f;
-		BINARY_READ(colorByte);
-		outColor._z = float(colorByte) / 255.0f;
-	}
-		break;
-
-	case NOISE_3DS_CHUNKID_PERCENTF://grey scale??
-	{
-		float colorPercentF = 0.0f;
-		BINARY_READ(colorPercentF);
-		outColor._x = outColor._y = outColor._z = colorPercentF;
-	}
-		break;
-
-	case NOISE_3DS_CHUNKID_PERCENTW: //grey scale??
-	{
-		uint8_t colorByte = 0;
-		BINARY_READ(colorByte);
-		outColor._x = outColor._y = outColor._z = float(colorByte) / 255.0f;
-	}
-		break;
-
-	default:
-		//skip this color chunk
-		fileIn.seekg(chunkLength - c_chunkHeadByteLength, std::ios::cur);
-		return;
-	}
-}
-
-//father: xxx map chunk
-//child:none
-void ReadAndParseMapChunk(std::string & outMapFileName)
-{
-	//please refer to project "Assimp" for more chunk information
-
-	uint16_t chunkID = 0;
-	uint32_t chunkLength = 0;
-	BINARY_READ(chunkID);
-	BINARY_READ(chunkLength);
-
-		/*case Discreet3DS::CHUNK_PERCENTF:
-		case Discreet3DS::CHUNK_PERCENTW:
-		case Discreet3DS::CHUNK_MAT_MAP_USCALE:
-		case Discreet3DS::CHUNK_MAT_MAP_VSCALE:
-		case Discreet3DS::CHUNK_MAT_MAP_UOFFSET:
-		case Discreet3DS::CHUNK_MAT_MAP_VOFFSET:
-		case Discreet3DS::CHUNK_MAT_MAP_ANG:
-		case Discreet3DS::CHUNK_MAT_MAP_TILING:*/
-
-	switch (chunkID)
-	{
-	case NOISE_3DS_CHUNKID_MAPPING_FILENAME:
-		ReadStringFromFile(outMapFileName);
-		break;
-
-	default:
-		//skip this color chunk
-		fileIn.seekg(chunkLength - c_chunkHeadByteLength, std::ios::cur);
-		break;
-	}
+	//colors are stored in subchunk , Refer to 3ds part of Project "Assimp" for more
 
 }
 
@@ -343,7 +262,7 @@ void ParseFaceDescAndIndices()
 	static_indicesList.reserve(faceCount);
 
 	//I want to combine various object into one 
-	uint16_t indexOffset = uint16_t(static_indicesList.size());
+	uint16_t indexOffset = static_indicesList.size();
 	for (UINT i = 0;i < faceCount;i++)
 	{
 		//1 face for 3 indices
@@ -489,75 +408,42 @@ void ParseMaterialName()
 //child	: sub color chunk
 void ParseAmbientColor()
 {
-	//data:sub chunks
-
-	uint64_t filePos = 0;
-	do
-	{
-		ReadAndParseColorChunk(static_materialList.back().AmbColor);
-		filePos = fileIn.tellg();
-	} while (filePos<currentChunkFileEndPos);
+	ReadAndParseColorChunk(static_materialList.back().AmbColor);
 }
 
 //father:Material Block
 //child	: sub color chunk
 void ParseDiffuseColor()
 {
-	uint64_t filePos = 0;
-	do
-	{
-		ReadAndParseColorChunk(static_materialList.back().diffColor);
-		filePos = fileIn.tellg();
-	} while (filePos<currentChunkFileEndPos);
+	ReadAndParseColorChunk(static_materialList.back().diffColor);
 }
 
 //father:Material Block
 //child	: sub color chunk
 void ParseSpecularColor()
 {
-	uint64_t filePos = 0;
-	do
-	{
-		ReadAndParseColorChunk(static_materialList.back().specColor);
-		filePos = fileIn.tellg();
-	} while (filePos<currentChunkFileEndPos);
+	ReadAndParseColorChunk(static_materialList.back().specColor);
 }
 
 //father:Material Block
 //child	: Mapping File Path  (Map option) 
 void ParseDiffuseMap()
 {
-	//data:sub chunks
-	uint64_t filePos = fileIn.tellg();
-	do
-	{
-		ReadAndParseMapChunk(static_materialList.back().diffMapName);
-		filePos = fileIn.tellg();
-	} while (filePos<currentChunkFileEndPos);
+	SkipCurrentChunk();
 }
 
-//father:Material Block
-//child	: Mapping File Path  (Map option) 
 void ParseBumpMap()
 {
-	//data:sub chunks
-	uint64_t filePos = fileIn.tellg();
-	do
-	{
-		ReadAndParseMapChunk(static_materialList.back().normalMapName);
-		filePos = fileIn.tellg();
-	} while (filePos<currentChunkFileEndPos);
+	SkipCurrentChunk();
 }
 
-//father:Material Block
-//child	: Mapping File Path  (Map option) 
-void ParseSpecularMap()
+void ParseReflectionMap()
 {
-	//data:sub chunks
-	uint64_t filePos = fileIn.tellg();
-	do
-	{
-		ReadAndParseMapChunk(static_materialList.back().specMapName);
-		filePos = fileIn.tellg();
-	} while (filePos<currentChunkFileEndPos);
+	SkipCurrentChunk();
 }
+
+void ParseMapFileName()
+{
+	SkipCurrentChunk();
+}
+

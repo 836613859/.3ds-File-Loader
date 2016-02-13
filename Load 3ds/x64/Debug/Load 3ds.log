@@ -1,4 +1,0 @@
-﻿  main.cpp
-f:\1vs project\load 3ds\.3ds-file-loader\load 3ds\main.cpp(522): warning C4244: “=”: 从“std::streamoff”转换到“UINT”，可能丢失数据
-  Load 3ds.vcxproj -> F:\1VS PROJECT\Load 3ds\.3ds-File-Loader\x64\Debug\Load 3ds.exe
-  Load 3ds.vcxproj -> F:\1VS PROJECT\Load 3ds\.3ds-File-Loader\x64\Debug\Load 3ds.pdb (Partial PDB)

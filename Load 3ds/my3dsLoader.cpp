@@ -42,7 +42,7 @@ void ParseMainChunk()
 
 		switch (chunkID)
 		{
-		case NOISE_3DS_CHUNKID_MAIN3D:
+		case NOISE_3DS_CHUNKID_3DS_CHUNKID_MAIN3D:
 			Parse3DEditorChunk();
 			break;
 
@@ -72,7 +72,7 @@ void Parse3DEditorChunk()
 
 		switch (chunkID)
 		{
-		case NOISE_3DS_CHUNKID_3D_EDITOR_CHUNK:
+		case NOISE_3DS_CHUNKID_3DS_CHUNKID_3D_EDITOR_CHUNK:
 			//block will be read in the right order
 			ParseObjectBlock();
 			ParseMaterialBlock();
@@ -104,7 +104,7 @@ void ParseObjectBlock()
 
 		switch (chunkID)
 		{
-		case NOISE_3DS_CHUNKID_OBJECT_BLOCK:
+		case NOISE_3DS_CHUNKID_3DS_CHUNKID_OBJECT_BLOCK:
 			//object name
 			do
 			{
@@ -148,7 +148,7 @@ void ParseTriangularMeshChunk()
 
 		switch (chunkID)
 		{
-		case NOISE_3DS_CHUNKID_TRIANGULAR_MESH:
+		case NOISE_3DS_CHUNKID_3DS_CHUNKID_TRIANGULAR_MESH:
 			ParseVerticesChunk();
 			ParseFaceDescAndIndices();
 			ParseTextureCoordinate();
